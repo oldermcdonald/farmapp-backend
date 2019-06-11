@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-
+const cors = require('cors')
 
 // Connect to Postgresql Database
 let databaseOptions = {}
@@ -13,6 +13,9 @@ if (process.env.PRODUCTION) { // heroku
 const { Client } = require('pg')
 const dbClient = new Client(databaseOptions)
 dbClient.connect()
+
+// allow requests from other domains
+app.use(cors())
 
 
 // Routes
