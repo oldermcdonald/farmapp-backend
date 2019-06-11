@@ -4,23 +4,15 @@ const app = express()
 
 // Connect to Postgresql Database
 let databaseOptions = {}
-if (process.env.PRODUCTION) {
+if (process.env.PRODUCTION) { // heroku
   databaseOptions.connectionString = process.env.DATABASE_URL
 } else {
   databaseOptions.database = 'farmapp'
 }
 
 const { Client } = require('pg')
-const client = new Client(databaseOptions)
-client.connect()
-
-
-function connectDb() {
-  if(!client.connection.stream.connecting){
-    client.connect()
-  }
-  console.log(`Connection Status: ${client.connection.stream.connecting}`)
-}
+const dbClient = new Client(databaseOptions)
+dbClient.connect()
 
 
 // Routes
@@ -28,13 +20,14 @@ app.get('/', (req, res) => {
   res.send('server running')
 })
 
+
 app.get('/api/todolist', (req, res) => {
-  // connectDb()
-  client.query(`SELECT * FROM todolist`, (err, res) => {
-    if (err) {
-      console.log(err)
+  dbClient.query(`SELECT * FROM todolist`, (error, dbResponse) => {
+    if (error) {
+      console.log(error)
     } else {
-      console.log(res.rows[0])
+      // console.log(dbResponse.rows[0])
+      res.json(dbResponse.rows)
     }
   })
 })
