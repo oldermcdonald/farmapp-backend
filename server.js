@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const { Client } = require('pg')
+const bodyParser = require('body-parser')
 
 // Connect to Postgresql Database
 let databaseOptions = {}
@@ -10,7 +12,6 @@ if (process.env.PRODUCTION) { // heroku
   databaseOptions.database = 'farmapp'
 }
 
-const { Client } = require('pg')
 const dbClient = new Client(databaseOptions)
 dbClient.connect()
 
@@ -18,13 +19,11 @@ dbClient.connect()
 app.use(cors())
 
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('server running')
-})
 
 
-app.get('/api/todolist', (req, res) => {
+// Database functions
+
+const getToDoItemsFromDB = (req, res) => {
   dbClient.query(`SELECT * FROM todolist`, (error, dbResponse) => {
     if (error) {
       console.log(error)
@@ -33,7 +32,42 @@ app.get('/api/todolist', (req, res) => {
       res.json(dbResponse.rows)
     }
   })
+}
+
+// add item to DB!
+const addToDoItemToDB = (req, res) => {
+  const { title, category, details, location, lat, long} = req.body
+  console.log(req.body)
+  debugger
+  dbClient.query(`INSERT INTO todolist (title, category, details, location, lat, long) VALUES ('${title}', '${category}', '${details}', '${location}', ${parseFloat(lat)}, ${parseFloat(long)})`, (error, dbResponse) => {
+    if (error) {
+      console.log(error)
+    } else {
+      res.json(dbResponse.rows)
+    }
+  })
+}
+
+
+// middleware
+
+// https://github.com/expressjs/body-parser
+// support parsing of application/json type post data
+app.use(bodyParser.json())
+// support parsing of application/x-www-form-urlencoded post data
+app.use(bodyParser.urlencoded({ extended: true }))
+
+
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('server running')
 })
+
+app.get('/api/todolist', getToDoItemsFromDB)
+
+app.post('/api/todolist', addToDoItemToDB)
+
 
 
 
