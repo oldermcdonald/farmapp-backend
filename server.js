@@ -38,8 +38,7 @@ const getToDoItemsFromDB = (req, res) => {
 const addToDoItemToDB = (req, res) => {
   const { title, category, details, location, lat, long} = req.body
   console.log(req.body)
-  debugger
-  dbClient.query(`INSERT INTO todolist (title, category, details, location, lat, long) VALUES ('${title}', '${category}', '${details}', '${location}', ${parseFloat(lat)}, ${parseFloat(long)})`, (error, dbResponse) => {
+  dbClient.query(`INSERT INTO todolist (title, category, details, location, lat, long) VALUES ($1, $2, $3, $4, $5, $6)`, [title, category, details, location, parseFloat(lat), parseFloat(long)], (error, dbResponse) => {
     if (error) {
       console.log(error)
     } else {
