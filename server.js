@@ -3,6 +3,9 @@ const app = express()
 const cors = require('cors')
 const { Client } = require('pg')
 const bodyParser = require('body-parser')
+const redirectToHTTPS = require('express-http-to-https').redirectToHTTPS;
+
+const PORT = process.env.PORT || 8080
 
 // Connect to Postgresql Database
 let databaseOptions = {}
@@ -11,14 +14,17 @@ if (process.env.PRODUCTION) { // heroku
 } else {
   databaseOptions.database = 'farmapp'
 }
-
 const dbClient = new Client(databaseOptions)
 dbClient.connect()
+
 
 // allow requests from other domains
 app.use(cors())
 
 
+// https://www.npmjs.com/package/express-http-to-https
+// Don't redirect if the hostname is `localhost:port` or the route is `/insecure`
+app.use(redirectToHTTPS([/localhost:(\d{4})/], [/\/insecure/], 301));
 
 
 // Database functions
@@ -59,18 +65,13 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 
 // Routes
-app.get('/', (req, res) => {
-  res.send('server running')
-})
-
+app.get('/', (req, res) => res.send('server running'))
 app.get('/api/todolist', getToDoItemsFromDB)
-
 app.post('/api/todolist', addToDoItemToDB)
 
 
-
-
-app.listen(8080, () => {
-  console.log('Running on port 8080')
+// start the server
+app.listen(PORT, () => {
+  console.log(`Running on port ${PORT}`)
 })
 
